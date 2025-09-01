@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>Untitled</title>
+  
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<!DOCTYPE html>
+<html lang="mr">
+
+<head>
+
+  <meta charset="UTF-8" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>मराठी मुळाक्षरे × चित्रे – जुळवा गेम</title>
+
+  <style>
+    :root {
+      --bg: #f6f9ff;
+      --card: #ffffff;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --ok: #16a34a;
+      --bad: #dc2626;
+      --brand: #2563eb;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, Ubuntu, "Helvetica Neue", Arial;
+      background: var(--bg);
+      color: var(--ink)
+    }
+
+    .wrap {
+      max-width: 1000px;
+      margin: auto;
+      padding: 20px
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .08);
+      padding: 20px
+    }
+
+    h1 {
+      margin: 0 0 4px;
+      font-size: clamp(20px, 4vw, 36px)
+    }
+
+    .muted {
+      color: var(--muted)
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 12px 0
+    }
+
+    .controls button,
+    .controls select {
+      font-size: 16px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      cursor: pointer
+    }
+
+    .controls button.primary {
+      background: var(--brand);
+      color: #fff;
+      border-color: transparent
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px
+    }
+
+    @media(min-width:640px) {
+      .grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr))
+      }
+    }
+
+    .tile {
+      background: #fff;
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 14px;
+      min-height: 110px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      text-align: center
+    }
+
+    .tile.letter {
+      font-weight: 900;
+      font-size: 42px
+    }
+
+    .tile.pic {
+      font-size: 26px
+    }
+
+    .tile.selected {
+      border-color: #93c5fd;
+      box-shadow: 0 0 0 4px #dbeafe
+    }
+
+    .tile.correct {
+      background: #dcfce7;
+      border-color: #86efac
+    }
+
+    .tile.wrong {
+      background: #fee2e2;
+      border-color: #fecaca
+    }
+
+    .status {
+      min-height: 28px;
+      text-align: center;
+      font-weight: 700
+    }
+
+    .ok {
+      color: var(--ok)
+    }
+
+    .bad {
+      color: var(--bad)
+    }
+
+    .score {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      color: var(--muted);
+      flex-wrap: wrap
+    }
+
+    .pill {
+      background: #eef2ff;
+      border: 1px solid #e0e7ff;
+      color: #3730a3;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 13px
+    }
+
+    .legend {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center
+    }
+
+    .legend .pill {
+      background: #f8fafc;
+      border: 1px dashed #e2e8f0;
+      color: #334155
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <div class="wrap">
+
+    <div class="card">
+
+      <h1>मुळाक्षरे × चित्रे – जुळवा गेम</h1>
+
+      <div class="muted">अ ते ह संपूर्ण संच. प्रत्येक फेरीला ५ अक्षरे व ५ चित्रे जुळवा.</div>
+      <div class="controls">
+
+        <button class="primary" id="nextSet">➡ पुढचा संच</button>
+
+        <button id="shuffle">🔀 मिसळा</button>
+
+        <select id="setSize">
+
+          <option value="5" selected>५ अक्षरे</option>
+
+          <option value="7">७ अक्षरे</option>
+
+          <option value="9">९ अक्षरे</option>
+
+        </select>
+
+        <select id="voiceMode">
+
+          <option value="tts" selected>आवाज: बोलून दाखवा</option>
+
+          <option value="beep">आवाज: बीप/टन</option>
+
+          <option value="off">आवाज: बंद</option>
+
+        </select>
+
+        <span class="pill" id="progress">0 / 0</span>
+
+      </div>
+
+      <div class="row">
+
+        <div class="grid" id="letters"></div>
+
+        <div class="grid" id="pictures"></div>
+
+        <div class="status" id="status"></div>
+
+        <div class="score" id="score">बरोबर: 0 | प्रयत्न: 0</div>
+
+        <div class="legend">
+
+          <span class="pill">सूचना: आधी **अक्षर** निवडा, मग **चित्र/शब्द** निवडा.</span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div> <!-- बीप/टन साउंड्स (ऑफलाइन) --> <audio id="okTone">
+
+    <source src="data:audio/wav;base64,UklGRlYAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABYBWFlaAAABAQAA" type="audio/wav">
+
+  </audio>
+
+  <audio id="badTone">
+
+    <source src="data:audio/wav;base64,UklGRlYAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABYBWFlaAAABAQAA" type="audio/wav">
+
+  </audio>
+  <script>
+    // 🔤 संपूर्ण संच: (अंशतः इमोजी हिंट + मराठी शब्द)
+    const DATA = [
+      // स्वर
+      {
+        l: 'अ',
+        w: 'अननस',
+        e: '🍍'
+      },
+      {
+        l: 'आ',
+        w: 'आंबा',
+        e: '🥭'
+      },
+      {
+        l: 'इ',
+        w: 'इमारत',
+        e: '🏢'
+      },
+      {
+        l: 'ई',
+        w: 'ईल (माश)',
+        e: '🐟'
+      },
+      {
+        l: 'उ',
+        w: 'उंट',
+        e: '🐪'
+      },
+      {
+        l: 'ऊ',
+        w: 'ऊस',
+        e: '🎋'
+      },
+      {
+        l: 'ए',
+        w: 'एरंड',
+        e: '🌿'
+      },
+      {
+        l: 'ऐ',
+        w: 'ऐनक (चष्मा)',
+        e: '👓'
+      },
+      {
+        l: 'ओ',
+        w: 'ओंजळ',
+        e: '🤲'
+      },
+      {
+        l: 'औ',
+        w: 'औषध',
+        e: '💊'
+      },
+      {
+        l: 'अं',
+        w: 'अंगठी',
+        e: '💍'
+      },
+      {
+        l: 'अः',
+        w: 'अःकार (उच्चार)',
+        e: '🔊'
+      },
+      {
+        l: 'ऋ',
+        w: 'ऋषी',
+        e: '🧙‍♂️'
+      },
+      // व्यंजन
+      {
+        l: 'क',
+        w: 'कावळा',
+        e: '🐦'
+      },
+      {
+        l: 'ख',
+        w: 'खेकडा',
+        e: '🦀'
+      },
+      {
+        l: 'ग',
+        w: 'गाय',
+        e: '🐄'
+      },
+      {
+        l: 'घ',
+        w: 'घड्याळ',
+        e: '🕰️'
+      },
+      {
+        l: 'ङ',
+        w: 'ङा (उच्चार)',
+        e: '🔈'
+      },
+      {
+        l: 'च',
+        w: 'चेंडू',
+        e: '⚽'
+      },
+      {
+        l: 'छ',
+        w: 'छत्री',
+        e: '🌂'
+      },
+      {
+        l: 'ज',
+        w: 'जिराफ',
+        e: '🦒'
+      },
+      {
+        l: 'झ',
+        w: 'झाड',
+        e: '🌳'
+      },
+      {
+        l: 'ञ',
+        w: 'ञ (उच्चार)',
+        e: '🔈'
+      },
+      {
+        l: 'ट',
+        w: 'टोपली',
+        e: '🧺'
+      },
+      {
+        l: 'ठ',
+        w: 'ठिंब (थेंब)',
+        e: '💧'
+      },
+      {
+        l: 'ड',
+        w: 'डमरू',
+        e: '🥁'
+      },
+      {
+        l: 'ढ',
+        w: 'ढोल',
+        e: '🥁'
+      },
+      {
+        l: 'ण',
+        w: 'ण (उच्चार)',
+        e: '🔈'
+      },
+      {
+        l: 'त',
+        w: 'तुरई',
+        e: '🥒'
+      },
+      {
+        l: 'थ',
+        w: 'थाळी',
+        e: '🍽️'
+      },
+      {
+        l: 'द',
+        w: 'दव',
+        e: '💧'
+      },
+      {
+        l: 'ध',
+        w: 'धनुष्य',
+        e: '🏹'
+      },
+      {
+        l: 'न',
+        w: 'नाव',
+        e: '🛶'
+      },
+      {
+        l: 'प',
+        w: 'पक्षी',
+        e: '🐦'
+      },
+      {
+        l: 'फ',
+        w: 'फूल',
+        e: '🌸'
+      },
+      {
+        l: 'ब',
+        w: 'बैल',
+        e: '🐂'
+      },
+      {
+        l: 'भ',
+        w: 'भोपळा',
+        e: '🎃'
+      },
+      {
+        l: 'म',
+        w: 'माकड',
+        e: '🐒'
+      },
+      {
+        l: 'य',
+        w: 'यज्ञोपवीत',
+        e: '🔗'
+      },
+      {
+        l: 'र',
+        w: 'रथ',
+        e: '🛺'
+      },
+      {
+        l: 'ल',
+        w: 'लिंबू',
+        e: '🍋'
+      },
+      {
+        l: 'व',
+        w: 'वाघ',
+        e: '🐯'
+      },
+      {
+        l: 'श',
+        w: 'शिंपी',
+        e: '🪡'
+      },
+      {
+        l: 'ष',
+        w: 'षटकोन',
+        e: '⬡'
+      },
+      {
+        l: 'स',
+        w: 'सूर्य',
+        e: '☀️'
+      },
+      {
+        l: 'ह',
+        w: 'हत्ती',
+        e: '🐘'
+      },
+      {
+        l: 'क्ष',
+        w: 'क्षमा',
+        e: '🙏'
+      },
+      {
+        l: 'त्र',
+        w: 'त्रिकोण',
+        e: '🔺'
+      },
+      {
+        l: 'ज्ञ',
+        w: 'ज्ञानी',
+        e: '🧠'
+      }
+    ];
+    // 📦 अवस्था
+    let pool = [...DATA];
+    let currentSet = [];
+    let selectedLetter = null;
+    let correct = 0,
+      attempts = 0,
+      doneInSet = 0;
+    // 🔈 आवाज (TTS + बीप)
+    function speak(text) {
+      const mode = voiceMode.value;
+      if (mode === 'off') return;
+      if (mode === 'tts' && 'speechSynthesis' in window) {
+        const u = new SpeechSynthesisUtterance(text);
+        // मराठी आवाज मिळाला तर तो वापरा
+        const voices = speechSynthesis.getVoices();
+        const mr = voices.find(v => /mr|marathi/i.test(v.lang || v.name || ''));
+        if (mr) u.voice = mr;
+        else u.lang = 'mr-IN';
+        speechSynthesis.cancel();
+        speechSynthesis.speak(u);
+      } else if (mode === 'beep') {
+        // फॉलबॅक टोन
+        const ok = text.includes('शाब्बास');
+        document.getElementById(ok ? 'okTone' : 'badTone').play();
+      }
+    }
+    // 🔁 सेट जनरेट
+    function pickSet() {
+      const size = parseInt(setSize.value, 10);
+      if (pool.length < size) {
+        pool = [...DATA];
+      }
+      shuffle(pool);
+      currentSet = pool.slice(0, size);
+      doneInSet = 0;
+      selectedLetter = null;
+      render();
+      updateProgress();
+      status.textContent = '';
+    }
+    // 🧩 UI रेंडर
+    const lettersBox = document.getElementById('letters');
+    const picsBox = document.getElementById('pictures');
+    const status = document.getElementById('status');
+    const score = document.getElementById('score');
+    const nextSetBtn = document.getElementById('nextSet');
+    const shuffleBtn = document.getElementById('shuffle');
+    const setSize = document.getElementById('setSize');
+    const voiceMode = document.getElementById('voiceMode');
+    const progress = document.getElementById('progress');
+
+    function render() {
+      lettersBox.innerHTML = '';
+      picsBox.innerHTML = '';
+      const letters = currentSet.map(x => x.l);
+      const pics = currentSet.map(x => ({
+        k: x.l,
+        label: `${x.w} ${x.e||''}`
+      }));
+      shuffle(pics);
+      letters.forEach(L => {
+        const d = document.createElement('button');
+        d.className = 'tile letter';
+        d.textContent = L;
+        d.addEventListener('click', () => {
+          [...lettersBox.children].forEach(el => el.classList.remove('selected'));
+          d.classList.add('selected');
+          selectedLetter = L;
+          status.textContent = `अक्षर निवडले: ${L}`;
+        });
+        lettersBox.appendChild(d);
+      });
+      pics.forEach(P => {
+        const d = document.createElement('button');
+        d.className = 'tile pic';
+        d.innerHTML = `<div style="font-size:20px">${P.label}</div>`;
+        d.addEventListener('click', () => {
+          if (!selectedLetter) {
+            status.className = 'status bad';
+            status.textContent = '👉 आधी अक्षर निवडा!';
+            return;
+          }
+          attempts++;
+          if (P.k === selectedLetter) {
+            d.classList.add('correct');
+            lockLetter(selectedLetter);
+            selectedLetter = null;
+            doneInSet++;
+            status.className = 'status ok';
+            status.textContent = '✅ बरोबर! शाब्बास!';
+            speak('शाब्बास');
+            if (doneInSet === currentSet.length) {
+              status.textContent = '🎉 संच पूर्ण! खूप छान!';
+              speak('संच पूर्ण. खूप छान');
+            }
+            correct++;
+          } else {
+            d.classList.add('wrong');
+            setTimeout(() => d.classList.remove('wrong'), 600);
+            status.className = 'status bad';
+            status.textContent = '❌ चूक, पुन्हा प्रयत्न करा';
+            speak('चूक, पुन्हा प्रयत्न करा');
+          }
+          score.textContent = `बरोबर: ${correct} | प्रयत्न: ${attempts}`;
+        });
+        picsBox.appendChild(d);
+      });
+    }
+
+    function lockLetter(L) {
+      [...lettersBox.children].forEach(el => {
+        if (el.textContent === L) {
+          el.classList.add('correct');
+          el.disabled = true;
+          el.classList.remove('selected');
+        }
+      });
+    }
+    // 🔧 युटिल्स
+    function shuffle(a) {
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function updateProgress() {
+      progress.textContent = `${doneInSet} / ${currentSet.length}`;
+    }
+    nextSetBtn.addEventListener('click', () => {
+      pickSet();
+    });
+    shuffleBtn.addEventListener('click', () => {
+      render();
+    });
+    setSize.addEventListener('change', () => {
+      pickSet();
+    });
+    // प्रारंभ
+    pickSet();
+    // काही ब्राउझरमध्ये प्रथम getVoices() async येते
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = () => {}
+    }
+  </script>
+</body>
+
+</html>
+<!-- partial -->
+  
+</body>
+</html>
