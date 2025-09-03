@@ -1,0 +1,199 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="mr">
+<head>
+  <meta charset="UTF-8">
+  <title>वर्ग १ शैक्षणिक गेम</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; background: #fdf6e3; }
+    h1 { color: #2c3e50; }
+    .menu-btn, .option-btn {
+      font-size: 28px; margin: 10px; padding: 15px; cursor: pointer;
+      border: 3px solid #2c3e50; border-radius: 20px; background: #fff;
+      display: inline-block; width: 280px;
+    }
+    .option-btn { font-size: 40px; }
+    .message { font-size: 28px; font-weight: bold; margin: 20px; color: green; }
+    #menuPage, #gamePage { display: none; }
+    button { padding: 10px 20px; font-size: 20px; margin: 10px; border-radius: 10px; }
+  </style>
+</head>
+<body>
+  <!-- 🏠 मेनू पान -->
+  <div id="menuPage">
+    <h1>🎮 वर्ग १ - शैक्षणिक गेम</h1>
+    <h2>गेम निवडा:</h2>
+    <div>
+      <div class="menu-btn" onclick="startGame('numSound10')">🔊 अंक ओळखा (१–१०)</div>
+      <div class="menu-btn" onclick="startGame('numSound20')">🔊 अंक ओळखा (११–२०)</div>
+      <div class="menu-btn" onclick="startGame('add9')">➕ बेरीज (उत्तर ≤ ९)</div>
+      <div class="menu-btn" onclick="startGame('add20')">➕ बेरीज (उत्तर ≤ २०)</div>
+      <div class="menu-btn" onclick="startGame('sub9')">➖ वजाबाकी (उत्तर ≤ ९)</div>
+      <div class="menu-btn" onclick="startGame('sub20')">➖ वजाबाकी (उत्तर ≤ २०)</div>
+      <div class="menu-btn" onclick="startGame('count10')">🍎 चित्र मोजा (१–१०)</div>
+      <div class="menu-btn" onclick="startGame('count20')">🍎 चित्र मोजा (११–२०)</div>
+      <div class="menu-btn" onclick="startGame('word10')">🔡 शब्द → अंक (१–१०)</div>
+      <div class="menu-btn" onclick="startGame('word20')">🔡 शब्द → अंक (११–२०)</div>
+    </div>
+  </div>
+
+  <!-- 🎮 गेम पान -->
+  <div id="gamePage">
+    <button onclick="goHome()">🏠 होम</button>
+    <p id="instructions">योग्य पर्याय निवडा</p>
+    <div id="game"></div>
+    <div id="options"></div>
+    <div class="message" id="message"></div>
+  </div>
+
+  <script>
+    // मराठी अंक आणि शब्द
+    const marathiNums = ["०","१","२","३","४","५","६","७","८","९","१०","११","१२","१३","१४","१५","१६","१७","१८","१९","२०"];
+    const marathiWords = ["शून्य","एक","दोन","तीन","चार","पाच","सहा","सात","आठ","नऊ","दहा","अकरा","बारा","तेरा","चौदा","पंधरा","सोळा","सतरा","अठरा","एकोणीस","वीस"];
+
+    let currentGame="";
+
+    function setMessage(text,color="green"){
+      document.getElementById("message").innerText=text;
+      document.getElementById("message").style.color=color;
+    }
+
+    // आवाज
+    function speak(text){
+      if(!window.speechSynthesis) return;
+      let msg=new SpeechSynthesisUtterance(text);
+      msg.lang="mr-IN";
+      msg.rate=0.9;
+      speechSynthesis.cancel();
+      speechSynthesis.speak(msg);
+    }
+
+    // होम पेजवर जा
+    function goHome(){
+      document.getElementById("gamePage").style.display="none";
+      document.getElementById("menuPage").style.display="block";
+      setMessage("");
+    }
+
+    // गेम सुरु करा
+    function startGame(type){
+      currentGame=type;
+      document.getElementById("menuPage").style.display="none";
+      document.getElementById("gamePage").style.display="block";
+      nextQuestion();
+    }
+
+    // पुढचा प्रश्न
+    function nextQuestion(){
+      switch(currentGame){
+        case "numSound10": startNumberSound(1,10); break;
+        case "numSound20": startNumberSound(11,20); break;
+        case "add9": startAddition(9); break;
+        case "add20": startAddition(20); break;
+        case "sub9": startSubtraction(9); break;
+        case "sub20": startSubtraction(20); break;
+        case "count10": startCountObjects(1,10); break;
+        case "count20": startCountObjects(11,20); break;
+        case "word10": startNumberWords(1,10); break;
+        case "word20": startNumberWords(11,20); break;
+      }
+    }
+
+    // 🔊 अंक आवाज
+    function startNumberSound(min,max){
+      setMessage(""); document.getElementById("instructions").innerText="आवाज ऐका आणि योग्य अंक निवडा";
+      let n=Math.floor(Math.random()*(max-min+1))+min;
+      speak(marathiNums[n]);
+      document.getElementById("game").innerHTML="<h2>🔊 ऐका...</h2>";
+      let options=[marathiNums[n]];
+      while(options.length<3){
+        let wrong=marathiNums[Math.floor(Math.random()*(max-min+1))+min];
+        if(!options.includes(wrong)) options.push(wrong);
+      }
+      showOptions(options,marathiNums[n]);
+    }
+
+    // ➕ बेरीज
+    function startAddition(limit){
+      setMessage(""); document.getElementById("instructions").innerText="बेरीज सोडवा";
+      let a=Math.floor(Math.random()*limit);
+      let b=Math.floor(Math.random()*(limit-a+1));
+      let ans=a+b;
+      document.getElementById("game").innerHTML=`<h2>${marathiNums[a]} + ${marathiNums[b]} = ?</h2>`;
+      let options=[marathiNums[ans]];
+      while(options.length<3){
+        let wrong=Math.floor(Math.random()*(limit+1));
+        if(!options.includes(marathiNums[wrong])) options.push(marathiNums[wrong]);
+      }
+      showOptions(options,marathiNums[ans]);
+    }
+
+    // ➖ वजाबाकी
+    function startSubtraction(limit){
+      setMessage(""); document.getElementById("instructions").innerText="वजाबाकी सोडवा";
+      let a=Math.floor(Math.random()*(limit+1));
+      let b=Math.floor(Math.random()*(a+1));
+      let ans=a-b;
+      document.getElementById("game").innerHTML=`<h2>${marathiNums[a]} - ${marathiNums[b]} = ?</h2>`;
+      let options=[marathiNums[ans]];
+      while(options.length<3){
+        let wrong=Math.floor(Math.random()*(limit+1));
+        if(!options.includes(marathiNums[wrong])) options.push(marathiNums[wrong]);
+      }
+      showOptions(options,marathiNums[ans]);
+    }
+
+    // 🍎 चित्र मोजा (अपडेटेड)
+    function startCountObjects(min,max){
+      setMessage(""); 
+      document.getElementById("instructions").innerText="चित्र मोजा आणि योग्य संख्या निवडा";
+      let n=Math.floor(Math.random()*(max-min+1))+min;
+      let emojis="";
+      for(let i=0;i<n;i++){ emojis+="🍎 "; }
+      document.getElementById("game").innerHTML =
+        `<div style="font-size:60px; display:flex; flex-wrap:wrap; justify-content:center; gap:10px;">${emojis}</div>`;
+      let options=[marathiNums[n]];
+      while(options.length<3){
+        let wrong=Math.floor(Math.random()*(max-min+1))+min;
+        if(!options.includes(marathiNums[wrong])) options.push(marathiNums[wrong]);
+      }
+      showOptions(options,marathiNums[n]);
+    }
+
+    // 🔡 शब्द → अंक
+    function startNumberWords(min,max){
+      setMessage(""); document.getElementById("instructions").innerText="शब्द वाचा आणि योग्य अंक निवडा";
+      let n=Math.floor(Math.random()*(max-min+1))+min;
+      document.getElementById("game").innerHTML=`<h2>${marathiWords[n]}</h2>`;
+      let options=[marathiNums[n]];
+      while(options.length<3){
+        let wrong=Math.floor(Math.random()*(max-min+1))+min;
+        if(!options.includes(marathiNums[wrong])) options.push(marathiNums[wrong]);
+      }
+      showOptions(options,marathiNums[n]);
+    }
+
+    // ✅ पर्याय दाखवणे
+    function showOptions(options,correct){
+      options.sort(()=>0.5-Math.random());
+      const div=document.getElementById("options");
+      div.innerHTML="";
+      options.forEach(opt=>{
+        let btn=document.createElement("div");
+        btn.className="option-btn"; btn.innerText=opt;
+        btn.onclick=()=>{
+          if(opt===correct){ 
+            setMessage("✅ बरोबर!","green"); speak("वेल डन");
+            setTimeout(nextQuestion,1500);
+          } else {
+            setMessage("❌ चुकीचं! पुन्हा प्रयत्न करा","red"); speak("चुकीचं उत्तर");
+          }
+        };
+        div.appendChild(btn);
+      });
+    }
+
+    // सुरुवातीला मेनू दाखवा
+    goHome();
+  </script>
+</body>
+</html>
